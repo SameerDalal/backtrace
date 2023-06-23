@@ -77,20 +77,27 @@ void symbolsParser(std::string symbols)
 
 void createObjects(std::string functionName, std::string memoryAddress) {
     // specifically stack allocation (not using heap allocation).
-    ContextNode node(functionName, memoryAddress);
-
-    pointerArray.push_back(&node);
+    ContextNode* node = new ContextNode(functionName, memoryAddress);
+    pointerArray.push_back(node);
 }
 
 void buildTree() {
-    // create another class to build tree
+    // create another class to build treea
 }
 
 
 int main() {
     foo(2);
 
+
+     for (int i = 0; i < pointerArray.size(); i++) {
+        delete pointerArray[i];
+    }
+
+
     free(stack_symbols);
+    
+
 
     return 0;
 }
