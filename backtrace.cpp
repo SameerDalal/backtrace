@@ -5,7 +5,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
-#include "contextnode.h"
+#include "ContextNode.h"
+#include "ContextTree.h"
 #include <vector>
 #include <algorithm>
 
@@ -27,6 +28,8 @@ char **stack_symbols;
 std::vector<ContextNode*> pointerArray;
 
 class ContextNode;
+
+class ContextTree;
 
 int prev_stack_depth;
 
@@ -76,13 +79,8 @@ void symbolsParser(std::string symbols)
 }
 
 void createObjects(std::string functionName, std::string memoryAddress) {
-    // specifically stack allocation (not using heap allocation).
     ContextNode* node = new ContextNode(functionName, memoryAddress);
     pointerArray.push_back(node);
-}
-
-void buildTree() {
-    // create another class to build treea
 }
 
 
@@ -90,12 +88,15 @@ int main() {
     foo(2);
 
 
-     for (int i = 0; i < pointerArray.size(); i++) {
-        delete pointerArray[i];
-    }
 
 
     free(stack_symbols);
+
+    for (auto node : pointerArray) {
+        delete node;
+    }
+
+    pointerArray.clear();
     
 
 
@@ -126,6 +127,9 @@ void otherTest() {
 void otherOtherTest() {
     // prints the additional traces (not repeating the original traces printed)
     printStackTrace(prev_stack_depth-1,1);
+    ContextNode c("234", "234");
+    ContextTree d(c);
+    d.buildTree();
 }
 
 
