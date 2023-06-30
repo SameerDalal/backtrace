@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string>
 #include <stdio.h>
-#include <execinfo.h>
+#include <execinfo.h> //this library helps obtain the backtrace but does not give information about function calls
+#include <libunwind.h> //this library gives information about function calls
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -10,10 +11,13 @@
 #include <vector>
 #include <algorithm>
 
+#define UNW_LOCAL_ONLY
+
 void printStackTrace(int depth);
 void symbolsParser(std::string symbols);
 void createObjects(std::string functionName, std::string memoryAddress);
 void buildTree();
+
 void free();
 
 // test functions
@@ -33,6 +37,7 @@ class ContextTree;
 
 int prev_stack_depth;
 
+
 void printStackTrace(int start = 0, int end = 0) {
 
     const int max_depth = 128;
@@ -51,6 +56,46 @@ void printStackTrace(int start = 0, int end = 0) {
     
     // assigns prev_stack_depth to the number of traces already in the tree
     prev_stack_depth = stack_depth;
+
+
+    //initialize libunwind context and cursor
+    unw_context_t context;
+    unw_cursor_t cursor;
+    
+    unw_getcontext(&context);
+    unw_init_local(&cursor, &context);
+
+    //obtains the name of the function
+    char function_name[64];
+    unw_word_t instruction_pointer;
+    
+    // attempting to access the called function
+    unw_get_proc_name(&cursor, function_name, sizeof(function_name), &instruction_pointer);
+    std::cout << "callee" << std::endl;
+    std::cout << function_name << std::endl;
+
+    /* 
+    obtains other function info
+
+    std::cout << "PRINTING OTHER FUNCTION INFO" << std::endl;
+    unw_proc_info_t proc_info;
+    char function_info[128];
+
+    unw_get_proc_info(&cursor, &proc_info);
+    */
+
+    // trying to move one frame back
+    while (!(unw_step(&cursor) != 0)) {
+        break;
+    }
+
+    //attempting to access calling function
+    char function_name1[64];
+    unw_get_proc_name(&cursor, function_name1, sizeof(function_name1), &instruction_pointer);
+    std::cout << "caller" << std::endl;
+    std::cout << function_name1 << std::endl;
+
+
 
 }
 
@@ -87,9 +132,6 @@ void createObjects(std::string functionName, std::string memoryAddress) {
 int main() {
     foo(2);
 
-
-
-
     free(stack_symbols);
 
     for (auto node : pointerArray) {
@@ -98,8 +140,6 @@ int main() {
 
     pointerArray.clear();
     
-
-
     return 0;
 }
 
@@ -127,19 +167,12 @@ void otherTest() {
 void otherOtherTest() {
     // prints the additional traces (not repeating the original traces printed)
     printStackTrace(prev_stack_depth-1,1);
+
     ContextNode c("234", "234");
     ContextTree d(c);
     d.buildTree();
+    std::cout << std::endl;
+    for (auto element : pointerArray) {
+        std::cout << element->functionName() << " " << element->memoryAddress() << " " << element << std::endl;
+    } 
 }
-
-
-
-
-
-
-
-
-
-
-
-
