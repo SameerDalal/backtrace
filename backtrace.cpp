@@ -11,8 +11,6 @@
 #include <vector>
 #include <algorithm>
 
-#define UNW_LOCAL_ONLY
-
 void printStackTrace(int depth);
 void symbolsParser(std::string symbols);
 void createObjects(std::string functionName, std::string memoryAddress);
@@ -21,10 +19,10 @@ void buildTree();
 void free();
 
 // test functions
-void foo(int test);
-void bar();
-void otherTest();
-void otherOtherTest();
+void test_1(int test);
+void test_2();
+void test_3();
+void test_4_contextTree();
 
 char **stack_symbols;
 
@@ -59,44 +57,32 @@ void printStackTrace(int start = 0, int end = 0) {
 
 
     //initialize libunwind context and cursor
+
     unw_context_t context;
     unw_cursor_t cursor;
+
     
     unw_getcontext(&context);
     unw_init_local(&cursor, &context);
 
-    //obtains the name of the function
-    char function_name[64];
     unw_word_t instruction_pointer;
-    
-    // attempting to access the called function
-    unw_get_proc_name(&cursor, function_name, sizeof(function_name), &instruction_pointer);
-    std::cout << "callee" << std::endl;
-    std::cout << function_name << std::endl;
+    unw_word_t program_counter;
 
-    /* 
-    obtains other function info
+    while (unw_step(&cursor) != 0) {
+        
+        char proc_name[64];
 
-    std::cout << "PRINTING OTHER FUNCTION INFO" << std::endl;
-    unw_proc_info_t proc_info;
-    char function_info[128];
+        // get the function at the current frame
+        unw_get_proc_name(&cursor, proc_name, sizeof(proc_name), &instruction_pointer);
+        std::cout << "Caller: " << proc_name << std::endl;
 
-    unw_get_proc_info(&cursor, &proc_info);
-    */
+        // go to next frame. Add if statement to catch errors
+        unw_step(&cursor);
 
-    // trying to move one frame back
-    while (!(unw_step(&cursor) != 0)) {
-        break;
+        // get the function at the updated frame 
+        unw_get_proc_name(&cursor, proc_name, sizeof(proc_name), &instruction_pointer);
+        std::cout << "Callee: " << proc_name << std::endl;
     }
-
-    //attempting to access calling function
-    char function_name1[64];
-    unw_get_proc_name(&cursor, function_name1, sizeof(function_name1), &instruction_pointer);
-    std::cout << "caller" << std::endl;
-    std::cout << function_name1 << std::endl;
-
-
-
 }
 
 /*
@@ -130,8 +116,11 @@ void createObjects(std::string functionName, std::string memoryAddress) {
 
 
 int main() {
-    foo(2);
+    test_1(2);
 
+    printStackTrace(prev_stack_depth-1,1);
+
+    //clear mem
     free(stack_symbols);
 
     for (auto node : pointerArray) {
@@ -143,35 +132,38 @@ int main() {
     return 0;
 }
 
-void foo(int test) {
+void test_1(int test) {
     std::cout << test << "\n";
-    bar();
+    test_2();
 }
 
-void bar() {
+void test_2() {
     std::cout << "works" << std::endl << std::endl;
 
     // prints initial backtrace trace since this is the first trace we are printing
     printStackTrace();
 
-    otherTest();
+    test_3();
 }
 
-void otherTest() {
+void test_3() {
     std::cout << "test2" << std::endl;
     std::cout << prev_stack_depth << std::endl;
-    otherOtherTest();
+    test_4_contextTree();
     
 }
 
-void otherOtherTest() {
+void test_4_contextTree() {
     // prints the additional traces (not repeating the original traces printed)
     printStackTrace(prev_stack_depth-1,1);
 
+    //testing contextTree
     ContextNode c("234", "234");
     ContextTree d(c);
     d.buildTree();
+    
     std::cout << std::endl;
+
     for (auto element : pointerArray) {
         std::cout << element->functionName() << " " << element->memoryAddress() << " " << element << std::endl;
     } 
