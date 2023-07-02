@@ -9,7 +9,9 @@
 #include "ContextNode.h"
 #include "ContextTree.h"
 #include <vector>
+
 #include <algorithm>
+#include <cmath>
 
 void printStackTrace(int depth);
 void symbolsParser(std::string symbols);
@@ -36,7 +38,13 @@ class ContextTree;
 int prev_stack_depth;
 
 
-void printStackTrace(int start = 0, int end = 0) {
+//initialize libunwind context and cursor
+unw_context_t context;
+unw_cursor_t cursor;
+
+void printStackTrace(int start = 0) {
+
+    int num_functions_printing = 0; 
 
     const int max_depth = 128;
     void *stack_trace[max_depth];
@@ -46,42 +54,39 @@ void printStackTrace(int start = 0, int end = 0) {
     
     std::reverse(stack_symbols, stack_symbols + stack_depth);
 
-    for(int i = start; i < stack_depth - end; i++)
+    for(int i = start; i < stack_depth; i++)
     {
         symbolsParser(stack_symbols[i]);
         std::cout << stack_symbols[i] << std::endl;
+        num_functions_printing++;
     }
     
     // assigns prev_stack_depth to the number of traces already in the tree
     prev_stack_depth = stack_depth;
 
-
-    //initialize libunwind context and cursor
-
-    unw_context_t context;
-    unw_cursor_t cursor;
-
-    
     unw_getcontext(&context);
     unw_init_local(&cursor, &context);
 
     unw_word_t instruction_pointer;
     unw_word_t program_counter;
 
-    while (unw_step(&cursor) != 0) {
+    std::cout << "NUM FUNCTION PRINTING: " << num_functions_printing << std::endl;
+
+    for(int i = 0; i < num_functions_printing; i++) {
+
         
         char proc_name[64];
 
         // get the function at the current frame
         unw_get_proc_name(&cursor, proc_name, sizeof(proc_name), &instruction_pointer);
-        std::cout << "Caller: " << proc_name << std::endl;
+        std::cout << "Callee: " << proc_name << std::endl;
 
         // go to next frame. Add if statement to catch errors
         unw_step(&cursor);
 
         // get the function at the updated frame 
         unw_get_proc_name(&cursor, proc_name, sizeof(proc_name), &instruction_pointer);
-        std::cout << "Callee: " << proc_name << std::endl;
+        std::cout << "Caller: " << proc_name << std::endl;
     }
 }
 
@@ -116,9 +121,10 @@ void createObjects(std::string functionName, std::string memoryAddress) {
 
 
 int main() {
+
     test_1(2);
 
-    printStackTrace(prev_stack_depth-1,1);
+    printStackTrace(prev_stack_depth-1);
 
     //clear mem
     free(stack_symbols);
@@ -128,6 +134,7 @@ int main() {
     }
 
     pointerArray.clear();
+    
     
     return 0;
 }
@@ -155,7 +162,7 @@ void test_3() {
 
 void test_4_contextTree() {
     // prints the additional traces (not repeating the original traces printed)
-    printStackTrace(prev_stack_depth-1,1);
+    printStackTrace(prev_stack_depth-1);
 
     //testing contextTree
     ContextNode c("234", "234");
