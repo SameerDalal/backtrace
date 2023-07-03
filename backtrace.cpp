@@ -11,11 +11,16 @@
 #include <vector>
 
 #include <algorithm>
-#include <cmath>
+#include <list>
+
+class ContextNode;
+
+class ContextTree;
 
 void printStackTrace(int depth);
 void symbolsParser(std::string symbols);
 void createObjects(std::string functionName, std::string memoryAddress);
+void assignParentAndChild();
 void buildTree();
 
 void free();
@@ -28,41 +33,31 @@ void test_4_contextTree();
 
 char **stack_symbols;
 
-// vector of pointers
 std::vector<ContextNode*> pointerArray;
 
-class ContextNode;
-
-class ContextTree;
-
 int prev_stack_depth;
-
 
 //initialize libunwind context and cursor
 unw_context_t context;
 unw_cursor_t cursor;
 
+
+struct linkedList {
+    std::string callee;
+    std::string caller;
+};
+
+
 void printStackTrace(int start = 0) {
 
-    int num_functions_printing = 0; 
+    std::list<linkedList> callerCalleeList;
 
     const int max_depth = 128;
     void *stack_trace[max_depth];
     int stack_depth = backtrace(stack_trace, max_depth);
-
     stack_symbols = backtrace_symbols(stack_trace, stack_depth);
     
     std::reverse(stack_symbols, stack_symbols + stack_depth);
-
-    for(int i = start; i < stack_depth; i++)
-    {
-        symbolsParser(stack_symbols[i]);
-        std::cout << stack_symbols[i] << std::endl;
-        num_functions_printing++;
-    }
-    
-    // assigns prev_stack_depth to the number of traces already in the tree
-    prev_stack_depth = stack_depth;
 
     unw_getcontext(&context);
     unw_init_local(&cursor, &context);
@@ -70,23 +65,35 @@ void printStackTrace(int start = 0) {
     unw_word_t instruction_pointer;
     unw_word_t program_counter;
 
-    std::cout << "NUM FUNCTION PRINTING: " << num_functions_printing << std::endl;
-
-    for(int i = 0; i < num_functions_printing; i++) {
-
+    for(int i = start; i < stack_depth; i++) {
         
-        char proc_name[64];
+        symbolsParser(stack_symbols[i]);
+        std::cout << stack_symbols[i] << std::endl;
+        
+        char proc_name_callee[64];
+
+        char proc_name_caller[64];
 
         // get the function at the current frame
-        unw_get_proc_name(&cursor, proc_name, sizeof(proc_name), &instruction_pointer);
-        std::cout << "Callee: " << proc_name << std::endl;
+        unw_get_proc_name(&cursor, proc_name_callee, sizeof(proc_name_callee), &instruction_pointer);
+        //std::cout << "Callee: " << proc_name_callee << std::endl;
 
         // go to next frame. Add if statement to catch errors
         unw_step(&cursor);
 
         // get the function at the updated frame 
-        unw_get_proc_name(&cursor, proc_name, sizeof(proc_name), &instruction_pointer);
-        std::cout << "Caller: " << proc_name << std::endl;
+        unw_get_proc_name(&cursor, proc_name_caller, sizeof(proc_name_caller), &instruction_pointer);
+        //std::cout << "Caller: " << proc_name_caller << std::endl;
+
+        callerCalleeList.push_front({proc_name_callee, proc_name_caller});
+    }
+    
+    // assigns prev_stack_depth to the number of traces already in the tree
+    prev_stack_depth = stack_depth;
+
+    for (auto list : callerCalleeList) {
+        std::cout << "Caller: " << list.caller << std::endl;
+        std::cout << "Callee: " << list.callee << std::endl; 
     }
 }
 
@@ -119,12 +126,17 @@ void createObjects(std::string functionName, std::string memoryAddress) {
     pointerArray.push_back(node);
 }
 
+void assignParentAndChild() {
+    // loop through pointer array and assign parent and child nodes from linked list.
+}
+
 
 int main() {
 
     test_1(2);
 
     printStackTrace(prev_stack_depth-1);
+
 
     //clear mem
     free(stack_symbols);
