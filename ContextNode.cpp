@@ -5,27 +5,37 @@
 
 //private instance variables
 //each node will store the symbols function name and memory address
+ContextNode* nullNode = new ContextNode("NULL", "NULL");
 
 std::string funcName;
 std::string memAddress;
 ContextNode* parent;
-ContextNode* child;
 std::vector<ContextNode*> children;
 
 
-ContextNode::ContextNode(std::string funcName, std::string memAddress, ContextNode* parent, ContextNode* child) 
-    : funcName(funcName), memAddress(memAddress), parent(parent), child(child) {
+ContextNode::ContextNode(std::string funcName, std::string memAddress) 
+    : funcName(funcName), memAddress(memAddress) {
+
+}
+/*
+ContextNode::~ContextNode() {
+    delete nullNode;
+}
+*/
 
 
-   
+// setters 
+void ContextNode::setChildren(ContextNode* child) {
+    if(child != nullptr) {
+        children.insert(children.end(), child);
+    }
 
 }
 
-void addChildren() {
-    children.insert(children.end(), child);
-    // for some reason libunwind library does not display proper caller and callee functions when this is used instead:
-    // children.push_back(child);
+void ContextNode::setParent(ContextNode* parent) {
+    this->parent = parent;
 }
+
 
 
 // getters
@@ -39,10 +49,16 @@ std::string ContextNode::memoryAddress() {
 };
 
 ContextNode* ContextNode::parentNodePointer() {
+    if(parent == nullptr) {
+        return nullNode;
+    } 
     return parent;
 }
 
 std::vector<ContextNode*> ContextNode::childrenNodesPointer() {
+    if (children.size() == 0) {
+        children.insert(children.end(), nullNode);
+    }
     return children;
 }
 

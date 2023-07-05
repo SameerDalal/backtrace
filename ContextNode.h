@@ -5,19 +5,19 @@
 #include <vector>
 
 class ContextNode {
+    
 private:
     std::string funcName;
     std::string memAddress;
     ContextNode* parent;
-    ContextNode* child;
     std::vector<ContextNode*> children;
 
-
 public:
-    ContextNode(std::string funcName = "", std::string memAddress = "", ContextNode* parent = nullptr, ContextNode* children = nullptr);
+    ContextNode(std::string funcName = "", std::string memAddress = "");
+    //~ContextNode();
 
-
-    void addChildren();
+    void setChildren(ContextNode* child = nullptr);
+    void setParent(ContextNode* parent = nullptr);
     
     std::string functionName();
     std::string memoryAddress();

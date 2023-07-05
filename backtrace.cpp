@@ -9,7 +9,6 @@
 #include "ContextNode.h"
 #include "ContextTree.h"
 #include <vector>
-
 #include <algorithm>
 #include <list>
 
@@ -20,7 +19,7 @@ class ContextTree;
 void printStackTrace(int depth);
 void symbolsParser(std::string symbols);
 void createObjects(std::string functionName, std::string memoryAddress);
-void assignParentAndChild();
+void assignParentAndChild(bool second, int iterations);
 void buildTree();
 
 void free();
@@ -50,7 +49,7 @@ struct linkedList {
 
 void printStackTrace(int start = 0) {
 
-    std::list<linkedList> callerCalleeList;
+    std::vector<linkedList> callerCalleeList;
 
     const int max_depth = 128;
     void *stack_trace[max_depth];
@@ -85,11 +84,13 @@ void printStackTrace(int start = 0) {
         unw_get_proc_name(&cursor, proc_name_caller, sizeof(proc_name_caller), &instruction_pointer);
         //std::cout << "Caller: " << proc_name_caller << std::endl;
 
-        callerCalleeList.push_front({proc_name_callee, proc_name_caller});
+        callerCalleeList.insert(callerCalleeList.begin(), {proc_name_callee, proc_name_caller});
     }
     
     // assigns prev_stack_depth to the number of traces already in the tree
     prev_stack_depth = stack_depth;
+
+    std::cout << std::endl;
 
     for (auto list : callerCalleeList) {
         std::cout << "Caller: " << list.caller << std::endl;
@@ -126,17 +127,41 @@ void createObjects(std::string functionName, std::string memoryAddress) {
     pointerArray.push_back(node);
 }
 
-void assignParentAndChild() {
-    // loop through pointer array and assign parent and child nodes from linked list.
+void assignParentAndChild(bool second, int iterations = 0) {
+    // needs cleanup
+    for(int i = iterations; i < pointerArray.size(); i++) {
+
+        if(iterations > 0) {
+            if(second) {
+                std::cout << "Parent of " << pointerArray[i]->functionName() << " is set to " << pointerArray[i-2]->functionName() << std::endl;
+                pointerArray[i]->setParent(pointerArray[i-2]);
+
+                std::cout << "Child of " << pointerArray[i-2]->functionName() << " is set to " << pointerArray[i]->functionName() << std::endl;
+                pointerArray[i-2]->setChildren(pointerArray[i]);
+                second = false;
+            } else {
+                std::cout << "Parent of " << pointerArray[i]->functionName() << " is set to " << pointerArray[i-1]->functionName() << std::endl;
+                pointerArray[i]->setParent(pointerArray[i-1]);
+            }
+        } else {
+            std::cout << "Parent of " << pointerArray[i]->functionName() << " is null" << std::endl;
+            pointerArray[i]->setParent();
+        }
+        if(i+1 < pointerArray.size()) {
+            std::cout << "Child of " << pointerArray[i]->functionName() << " is set to " << pointerArray[i+1]->functionName() << std::endl;
+            pointerArray[i]->setChildren(pointerArray[i+1]);
+        } else {
+            std::cout << "Child of " << pointerArray[i]->functionName() << " is null" << std::endl;
+            pointerArray[i]->setChildren();
+        }
+        iterations++;
+    }
 }
 
 
 int main() {
 
     test_1(2);
-
-    printStackTrace(prev_stack_depth-1);
-
 
     //clear mem
     free(stack_symbols);
@@ -147,12 +172,11 @@ int main() {
 
     pointerArray.clear();
     
-    
     return 0;
 }
 
 void test_1(int test) {
-    std::cout << test << "\n";
+    std::cout << test << std::endl;
     test_2();
 }
 
@@ -161,29 +185,45 @@ void test_2() {
 
     // prints initial backtrace trace since this is the first trace we are printing
     printStackTrace();
+    std::cout << std::endl;
+    assignParentAndChild(false);
+
+    std::cout << std::endl;
 
     test_3();
 }
 
 void test_3() {
-    std::cout << "test2" << std::endl;
-    std::cout << prev_stack_depth << std::endl;
+    std::cout << "test2" << std::endl << prev_stack_depth << std::endl << std::endl;
     test_4_contextTree();
     
 }
 
 void test_4_contextTree() {
-    // prints the additional traces (not repeating the original traces printed)
-    printStackTrace(prev_stack_depth-1);
 
+    // prints the additional traces (not repeating the original traces printed)
+    std::cout << "Additional Trace: " << std::endl;
+    printStackTrace(prev_stack_depth-1);
+    std::cout << std::endl;
+    assignParentAndChild(true, prev_stack_depth-2);
+
+    std::cout << std::endl;
     //testing contextTree
     ContextNode c("234", "234");
     ContextTree d(c);
     d.buildTree();
     
     std::cout << std::endl;
-
-    for (auto element : pointerArray) {
-        std::cout << element->functionName() << " " << element->memoryAddress() << " " << element << std::endl;
-    } 
+    
+    for (auto symbol : pointerArray) {
+        std::cout << "| Function Name: " << symbol->functionName()
+                  << " | Memory Address: " << symbol->memoryAddress() 
+                  << " | Pointer: " << symbol 
+                  << " | Parent: " << symbol->parentNodePointer()->functionName()
+                  << " | Children: "; 
+        for (auto child : symbol->childrenNodesPointer()) {
+            std::cout << child->functionName() << ", ";
+        }
+        std::cout << std::endl << std::endl;
+    }
 }
