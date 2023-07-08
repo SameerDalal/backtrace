@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <list>
 
+#include <omp.h>
+
 class ContextNode;
 
 class ContextTree;
@@ -29,6 +31,8 @@ void test_1(int test);
 void test_2();
 void test_3();
 void test_4_contextTree();
+void threadedFunction1();
+void threadedFunction2();
 
 char **stack_symbols;
 
@@ -161,7 +165,32 @@ void assignParentAndChild(bool second, int iterations = 0) {
 
 int main() {
 
-    test_1(2);
+    omp_set_num_threads(4);
+
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            test_1(2);
+        }
+
+        #pragma omp section
+        {
+            threadedFunction1();
+        }
+    }
+    
+    for (auto symbol : pointerArray) {
+        std::cout << "| Function Name: " << symbol->functionName()
+                  << " | Memory Address: " << symbol->memoryAddress() 
+                  << " | Pointer: " << symbol 
+                  << " | Parent: " << symbol->parentNodePointer()->functionName()
+                  << " | Children: "; 
+        for (auto child : symbol->childrenNodesPointer()) {
+            std::cout << child->functionName() << ", ";
+        }
+        std::cout << std::endl << std::endl;
+    }
 
     //clear mem
     free(stack_symbols);
@@ -196,7 +225,6 @@ void test_2() {
 void test_3() {
     std::cout << "test2" << std::endl << prev_stack_depth << std::endl << std::endl;
     test_4_contextTree();
-    
 }
 
 void test_4_contextTree() {
@@ -214,16 +242,21 @@ void test_4_contextTree() {
     d.buildTree();
     
     std::cout << std::endl;
-    
-    for (auto symbol : pointerArray) {
-        std::cout << "| Function Name: " << symbol->functionName()
-                  << " | Memory Address: " << symbol->memoryAddress() 
-                  << " | Pointer: " << symbol 
-                  << " | Parent: " << symbol->parentNodePointer()->functionName()
-                  << " | Children: "; 
-        for (auto child : symbol->childrenNodesPointer()) {
-            std::cout << child->functionName() << ", ";
-        }
-        std::cout << std::endl << std::endl;
+
+}
+
+void threadedFunction1()
+{
+    #pragma omp parallel
+    {
+        std::cout << "threadedFunction1 thread_ID: " << omp_get_thread_num() << std::endl;
+    }
+}
+
+void threadedFunction2()
+{
+    #pragma omp parallel
+    {
+        std::cout << "threadedFunction2 thread_ID: " << omp_get_thread_num() << std::endl;
     }
 }
