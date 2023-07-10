@@ -7,22 +7,22 @@
 class ContextNode {
     
 private:
-    std::string funcName;
-    std::string memAddress;
+
     ContextNode* parent;
-    std::vector<ContextNode*> children;
+    std::string funcName;
+    void* object;
+    
 
 public:
-    ContextNode(std::string funcName = "", std::string memAddress = "");
+    ContextNode(ContextNode* parent, std::string funcName, void* object);
     //~ContextNode();
 
-    void setChildren(ContextNode* child = nullptr);
-    void setParent(ContextNode* parent = nullptr);
+    void setChild(ContextNode* node);
+    void removeChild();
     
     std::string functionName();
-    std::string memoryAddress();
-    ContextNode* parentNodePointer();
-    std::vector<ContextNode*> childrenNodesPointer();
+    void* classReference();
+    ContextNode* parentNode();
     
 };
 

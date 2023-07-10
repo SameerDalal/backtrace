@@ -5,36 +5,21 @@
 
 //private instance variables
 //each node will store the symbols function name and memory address
-ContextNode* nullNode = new ContextNode("NULL", "NULL");
 
-std::string funcName;
-std::string memAddress;
 ContextNode* parent;
-std::vector<ContextNode*> children;
+std::string funcName;
+void* object;
 
-
-ContextNode::ContextNode(std::string funcName, std::string memAddress) 
-    : funcName(funcName), memAddress(memAddress) {
-
+ContextNode::ContextNode(ContextNode* parent, std::string funcName, void* object){ 
+    this->parent = parent;
+    this->funcName = funcName;
+    this->object = object;
 }
 /*
 ContextNode::~ContextNode() {
     delete nullNode;
 }
 */
-
-
-// setters 
-void ContextNode::setChildren(ContextNode* child) {
-    if(child != nullptr) {
-        children.insert(children.end(), child);
-    }
-
-}
-
-void ContextNode::setParent(ContextNode* parent) {
-    this->parent = parent;
-}
 
 
 
@@ -44,22 +29,12 @@ std::string ContextNode::functionName() {
     return funcName;
 };
 
-std::string ContextNode::memoryAddress() {
-    return memAddress;
+void* ContextNode::classReference() {
+    return object;
 };
 
-ContextNode* ContextNode::parentNodePointer() {
-    if(parent == nullptr) {
-        return nullNode;
-    } 
+ContextNode* ContextNode::parentNode() {
     return parent;
-}
-
-std::vector<ContextNode*> ContextNode::childrenNodesPointer() {
-    if (children.size() == 0) {
-        children.insert(children.end(), nullNode);
-    }
-    return children;
 }
 
 
