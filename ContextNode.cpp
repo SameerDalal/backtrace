@@ -3,43 +3,61 @@
 #include <string>
 #include <vector>
 
-//private instance variables
-//each node will store the symbols function name and memory address
 
 ContextNode* parent;
+std::vector<ContextNode*> children;
+
+void* frame_addr;
+void* return_addr;
 std::string funcName;
-void* object;
+std::vector<std::string> arguments;
 
-ContextNode::ContextNode(ContextNode* parent, std::string funcName, void* object){ 
-    this->parent = parent;
+
+ContextNode::ContextNode(void* frame_addr, void* return_addr, std::string funcName, std::vector<std::string> arguments) { 
+    
+    this->frame_addr = frame_addr;
+    this->return_addr = return_addr;
     this->funcName = funcName;
-    this->object = object;
+    this->arguments = arguments;
+ 
 }
-/*
+
 ContextNode::~ContextNode() {
-    delete nullNode;
+    delete this;
 }
-*/
 
+void ContextNode::setChild(ContextNode* child) {
+    children.push_back(child);
+}
 
+void ContextNode::setParentNode(ContextNode* node){
+    parent = node;
+}
 
 // getters
 
-std::string ContextNode::functionName() {
+std::string ContextNode::getFunctionName() {
     return funcName;
 };
 
-void* ContextNode::classReference() {
-    return object;
-};
-
-ContextNode* ContextNode::parentNode() {
+ContextNode* ContextNode::getParentNode() {
     return parent;
 }
 
+std::vector<std::string> ContextNode::getArguments() {
+    return arguments;
+}
 
+std::vector<ContextNode*> ContextNode::getChildren() {
+    return children;
+}
 
-// This class represents each node that will be part of the tree
-// Another class should be built that takes a vector of the ContextNode and forms a tree.
+void* ContextNode::getFrameAddress() {
+    return frame_addr;
+}
+
+void* ContextNode::getReturnAddress() {
+    return return_addr;
+}
 
 

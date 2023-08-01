@@ -1,26 +1,42 @@
-#ifndef BACKTRACE_H
-#define BACKTRACE_H
+#pragma once
 
 #include "ContextNode.h"
 #include <string>
+#include <vector>
+#include <fstream>
 
 class Backtrace {
+
 private:
-    
-    ContextNode* btNode;
-    Backtrace();
+
+    ContextNode* initNode;
+
+    std::vector<std::string> argArr;
+
+    std::vector<std::string> parse_arg_arr();
+   
+    template <typename T>
+    void print_argument(const T& arg);
+
+    template <typename T, typename... Args>
+    void print_argument(const T& arg, const Args&... args);
+
 public:
-    
+
+    Backtrace();
+    ~Backtrace();
+
     void* object;
 
-    void startTrace(std::string funcName, void* object);
-    void endTrace(std::string funcName);
+    template <typename... Args>
+    void start_trace(void* frame_addr, void* return_addr, const std::string& funcName, const Args&... args);
 
-    static Backtrace* getInstance();
+    // function overload if there are no arguments
+    void start_trace(void* frame_addr, void* return_addr, const std::string& funcName);
 
-    void printTrace();
+    void end_trace(std::string funcName);
+
+    void write_to_dot();
 };
 
-static Backtrace* btInstance;
-
-#endif // BACKTRACE_H
+#include "Backtrace.tpp" 

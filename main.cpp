@@ -7,56 +7,53 @@ void test_2();
 void test_3();
 void test_4_contextTree();
 
-class Backtrace;
+
+Backtrace* bt = new Backtrace();
 
 int main() {
-        
 
-    Backtrace* bt = Backtrace::getInstance();
-    bt->printTrace();
-    bt->startTrace("main", nullptr);
+    bt->start_trace(__builtin_frame_address(0), __builtin_extract_return_addr(0), "main");
+
+    test_1(5);
 
 
-    test_1(2);
+    bt->end_trace("main");
 
-    bt->endTrace("main");
+    //calling destructor
+    bt->~Backtrace();
+
 
     return 0;
 }
 
 void test_1(int test) {
-    Backtrace* bt = Backtrace::getInstance();
-    bt->startTrace("test_1", nullptr);
-
-    std::cout << test << std::endl;
+    
+    //can use (void*) but preferably convert all parameters to std::string
+    bt->start_trace(__builtin_frame_address(0), __builtin_extract_return_addr(0), "test_1", "int", "test", std::to_string(test));
+        
     test_2();
-
-    bt->endTrace("main");
-}
-
-void test_2() {
-    Backtrace* bt = Backtrace::getInstance();
-    bt->startTrace("test_2", nullptr);
-
-    std::cout << "works" << std::endl << std::endl;
-    bt->printTrace();
 
     test_3();
 
-    std::cout << bt->object << std::endl;
-    
-    std::cout << std::endl;
+    bt->end_trace("test_1");
+}
 
-    bt->endTrace("test_2");
+void test_2() {
+
+    bt->start_trace(__builtin_frame_address(0), __builtin_extract_return_addr(0), "test_2");
+
+    test_3();
+
+    bt->end_trace("test_2");
 }
 
 void test_3() {
-    Backtrace* bt = Backtrace::getInstance();
-    bt->startTrace("test_3", nullptr);
+
+    bt->start_trace(__builtin_frame_address(0), __builtin_extract_return_addr(0), "test_3");
 
     test_4_contextTree();
 
-    bt->endTrace("test_2");
+    bt->end_trace("test_3");
 }
 
 void test_4_contextTree() {

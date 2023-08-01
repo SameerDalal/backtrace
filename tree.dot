@@ -1,0 +1,12 @@
+digraph ContextTree {
+nodetest_3 [label="test_3\n Frame Address: 0x0x7ffff1cf3df0\n Return Address: 0x0"];
+nodetest_2 -> nodetest_3
+nodetest_2 [label="test_2\n Frame Address: 0x0x7ffff1cf3e50\n Return Address: 0x0"];
+nodetest_1 -> nodetest_2
+nodetest_3 [label="test_3\n Frame Address: 0x0x7ffff1cf3e50\n Return Address: 0x0"];
+nodetest_1 -> nodetest_3
+nodetest_1 [label="test_1\n Frame Address: 0x0x7ffff1cf3ee0\n Return Address: 0x0"];
+nodemain -> nodetest_1 [label=" int test = 5, "];
+nodemain [label="main\n Frame Address: 0x0x7ffff1cf3f40\n Return Address: 0x0"];
+nodeNULL -> nodemain
+}
