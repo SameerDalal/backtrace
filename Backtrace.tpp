@@ -2,6 +2,7 @@
 #include "ContextNode.h"
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 
 ContextNode* initNode;
@@ -35,21 +36,18 @@ std::vector<std::string> Backtrace::parse_arg_arr() {
 }
 
 
-template <typename T>
-void Backtrace::print_argument(const T& arg) {
-    argArr.push_back(arg);
-}
+void Backtrace::start_trace(void* frame_addr, void* return_addr, const std::string funcName, ...) {
 
-template <typename T, typename... Args>
-void Backtrace::print_argument(const T& arg, const Args&... args) {
-    argArr.push_back(arg);
-    print_argument(args...);
-}
+    va_list argp;
+    va_start(argp, funcName);
 
-template <typename... Args>
-void Backtrace::start_trace(void* frame_addr, void* return_addr, const std::string& funcName, const Args&... args) {
+    const char* value;
+    while ((value = va_arg(argp, const char*)) != nullptr) {
+        argArr.push_back(value);
+    }
 
-    print_argument(args...);
+
+    va_end(argp);
 
     ContextNode* node = new ContextNode(frame_addr, return_addr, funcName, parse_arg_arr());
     
@@ -61,7 +59,7 @@ void Backtrace::start_trace(void* frame_addr, void* return_addr, const std::stri
 }
 
 // function overload if there are no arguments
-void Backtrace::start_trace(void* frame_addr, void* return_addr, const std::string& funcName) {
+void Backtrace::start_trace(void* frame_addr, void* return_addr, const char* funcName) {
     
     ContextNode* node = new ContextNode(frame_addr, return_addr, funcName, {});
     

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <stdarg.h>
 
 class Backtrace {
 
@@ -15,11 +16,6 @@ private:
 
     std::vector<std::string> parse_arg_arr();
    
-    template <typename T>
-    void print_argument(const T& arg);
-
-    template <typename T, typename... Args>
-    void print_argument(const T& arg, const Args&... args);
 
 public:
 
@@ -28,11 +24,10 @@ public:
 
     void* object;
 
-    template <typename... Args>
-    void start_trace(void* frame_addr, void* return_addr, const std::string& funcName, const Args&... args);
+    void start_trace(void* frame_addr, void* return_addr, const std::string funcName, ...);
 
     // function overload if there are no arguments
-    void start_trace(void* frame_addr, void* return_addr, const std::string& funcName);
+    void start_trace(void* frame_addr, void* return_addr, const char* funcName);
 
     void end_trace(std::string funcName);
 

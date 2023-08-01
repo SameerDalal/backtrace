@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "Backtrace.h"
+#include <sstream>
 
 void test_1(int test);
 void test_2();
@@ -15,7 +16,7 @@ int main() {
     bt->start_trace(__builtin_frame_address(0), __builtin_extract_return_addr(0), "main");
 
     test_1(5);
-
+    
 
     bt->end_trace("main");
 
@@ -29,7 +30,7 @@ int main() {
 void test_1(int test) {
     
     //can use (void*) but preferably convert all parameters to std::string
-    bt->start_trace(__builtin_frame_address(0), __builtin_extract_return_addr(0), "test_1", "int", "test", std::to_string(test));
+    bt->start_trace(__builtin_frame_address(0), __builtin_extract_return_addr(0), "test_1", "int", "test", std::to_string(test).c_str());
         
     test_2();
 
