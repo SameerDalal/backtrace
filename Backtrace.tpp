@@ -2,7 +2,6 @@
 #include "ContextNode.h"
 #include <string>
 #include <iostream>
-#include <sstream>
 #include <fstream>
 
 ContextNode* initNode;
@@ -45,7 +44,6 @@ void Backtrace::start_trace(void* frame_addr, void* return_addr, const std::stri
     while ((value = va_arg(argp, const char*)) != nullptr) {
         argArr.push_back(value);
     }
-
 
     va_end(argp);
 
