@@ -6,6 +6,7 @@
 #include <fstream>
 #include <stdarg.h>
 
+
 class Backtrace {
 
 private:
@@ -15,23 +16,19 @@ private:
     std::vector<std::string> argArr;
 
     std::vector<std::string> parse_arg_arr();
-   
+    
+    void write_to_dot();
 
 public:
 
     Backtrace();
     ~Backtrace();
 
-    void* object;
-
-    void start_trace(void* frame_addr, void* return_addr, const std::string funcName, ...);
-
-    // function overload if there are no arguments
-    void start_trace(void* frame_addr, void* return_addr, const char* funcName);
+    void start_trace(std::string funcName, ...);
 
     void end_trace(std::string funcName);
 
-    void write_to_dot();
+    
 };
 
 #include "Backtrace.tpp" 

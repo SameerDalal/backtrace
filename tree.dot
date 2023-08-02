@@ -1,12 +1,12 @@
 digraph ContextTree {
-nodetest_3 [label="test_3\n Frame Address: 0x0x7fffc4b2ae80\n Return Address: 0x0"];
+nodetest_3 [label="test_3\n Frame Address: 0x0x7fffdaa9bd80\n Return Address: 0x0x7f5f20f5cce2\n StartIP: 0x7f5f20f5cdb7\n EndIP: 0x7f5f20f5cf08\n LSDA: 0x7f5f20f620c9\n Handler: 0x7f5f20d79a80\n Global Pointer: 0x7f5f20f63e18\n Flags:0"];
 nodetest_2 -> nodetest_3
-nodetest_2 [label="test_2\n Frame Address: 0x0x7fffc4b2aee0\n Return Address: 0x0"];
+nodetest_2 [label="test_2\n Frame Address: 0x0x7fffdaa9bde0\n Return Address: 0x0x7f5f20f5cb7e\n StartIP: 0x7f5f20f5cc66\n EndIP: 0x7f5f20f5cdb7\n LSDA: 0x7f5f20f620a6\n Handler: 0x7f5f20d79a80\n Global Pointer: 0x7f5f20f63e18\n Flags:0"];
 nodetest_1 -> nodetest_2
-nodetest_3 [label="test_3\n Frame Address: 0x0x7fffc4b2aee0\n Return Address: 0x0"];
+nodetest_3 [label="test_3\n Frame Address: 0x0x7fffdaa9bde0\n Return Address: 0x0x7f5f20f5cb83\n StartIP: 0x7f5f20f5cdb7\n EndIP: 0x7f5f20f5cf08\n LSDA: 0x7f5f20f620c9\n Handler: 0x7f5f20d79a80\n Global Pointer: 0x7f5f20f63e18\n Flags:0"];
 nodetest_1 -> nodetest_3
-nodetest_1 [label="test_1\n Frame Address: 0x0x7fffc4b2af70\n Return Address: 0x0"];
+nodetest_1 [label="test_1\n Frame Address: 0x0x7fffdaa9be70\n Return Address: 0x0x7f5f20f5c9dd\n StartIP: 0x7f5f20f5cac5\n EndIP: 0x7f5f20f5cc66\n LSDA: 0x7f5f20f6207d\n Handler: 0x7f5f20d79a80\n Global Pointer: 0x7f5f20f63e18\n Flags:0"];
 nodemain -> nodetest_1 [label=" int test = 5, "];
-nodemain [label="main\n Frame Address: 0x0x7fffc4b2afd0\n Return Address: 0x0"];
+nodemain [label="main\n Frame Address: 0x0x7fffdaa9bed0\n Return Address: 0x0x7f5f20af4083\n StartIP: 0x7f5f20f5c95c\n EndIP: 0x7f5f20f5cac5\n LSDA: 0x7f5f20f6205a\n Handler: 0x7f5f20d79a80\n Global Pointer: 0x7f5f20f63e18\n Flags:0"];
 nodeNULL -> nodemain
 }

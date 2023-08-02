@@ -2,6 +2,7 @@
 #include "ContextNode.h"
 #include <string>
 #include <vector>
+#include <libunwind.h>
 
 
 ContextNode* parent;
@@ -10,20 +11,41 @@ std::vector<ContextNode*> children;
 void* frame_addr;
 void* return_addr;
 std::string funcName;
+unw_word_t start_ip;
+unw_word_t end_ip;
+unw_word_t lsda;
+unw_word_t handler; 
+unw_word_t global_pointer;
+unw_word_t flags;
 std::vector<std::string> arguments;
 
 
-ContextNode::ContextNode(void* frame_addr, void* return_addr, std::string funcName, std::vector<std::string> arguments) { 
+ContextNode::ContextNode(void* frame_addr, 
+                        void* return_addr, 
+                        std::string funcName,
+                        unw_word_t start_ip,
+                        unw_word_t end_ip,
+                        unw_word_t lsda,
+                        unw_word_t handler,
+                        unw_word_t global_pointer,
+                        unw_word_t flags,
+                        std::vector<std::string> arguments) { 
     
     this->frame_addr = frame_addr;
     this->return_addr = return_addr;
+    this->start_ip = start_ip;
+    this->end_ip = end_ip;
+    this->lsda = lsda;
+    this->handler = handler;
+    this->global_pointer = global_pointer;
+    this->flags = flags;
     this->funcName = funcName;
     this->arguments = arguments;
  
 }
 
 ContextNode::~ContextNode() {
-    delete this;
+    //delete this;
 }
 
 void ContextNode::setChild(ContextNode* child) {
@@ -58,6 +80,32 @@ void* ContextNode::getFrameAddress() {
 
 void* ContextNode::getReturnAddress() {
     return return_addr;
+}
+
+
+
+unw_word_t ContextNode::getStartIP() const {
+    return start_ip;
+}
+
+unw_word_t ContextNode::getEndIP() const {
+    return end_ip;
+}
+
+unw_word_t ContextNode::getLsda() const {
+    return lsda;
+}
+
+unw_word_t ContextNode::getHandler() const {
+    return handler;
+}
+
+unw_word_t ContextNode::getGlobalPointer() const {
+    return global_pointer;
+}
+
+unw_word_t ContextNode::getFlags() const {
+    return flags;
 }
 
 
