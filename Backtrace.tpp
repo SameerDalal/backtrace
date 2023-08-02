@@ -70,6 +70,7 @@ void Backtrace::start_trace_call(std::string funcName, ...) {
 
     unw_get_proc_name(&cursor, proc_name, sizeof(proc_name), &offset);
 
+
     for (const auto& node : nodes) {
         if (node->getStartIP() == proc_info.start_ip) {
             std::cout << "True" << std::endl;
@@ -79,6 +80,7 @@ void Backtrace::start_trace_call(std::string funcName, ...) {
             std::cout << node->getCallCount() << std::endl << std::endl;
         }
     }
+
     
     va_list argp;
     va_start(argp, funcName);
@@ -129,8 +131,15 @@ void Backtrace::start_func_call(std::string funcName, ...) {
 
     va_end(argp);
 
-
-    
+    bool buildNewNode = true;
+    int repeatNodeIndex;
+    for(int i = 0; i < nodes.size(); i++) {
+        if(nodes[i]->getStartIP() == proc_info.start_ip) {
+            buildNewNode = false;
+            repeatNodeIndex = i;
+        }
+    }
+    if(buildNewNode) {
     ContextNode* node = new ContextNode(
                                         __builtin_frame_address(1),
                                         __builtin_extract_return_addr(__builtin_return_address(1)), 
@@ -142,15 +151,28 @@ void Backtrace::start_func_call(std::string funcName, ...) {
                                         proc_info.gp, 
                                         proc_info.flags,
                                         parse_arg_arr(parameter_array));
+        
+        nodes.push_back(node);
 
-    
-    nodes.push_back(node);
+        initNode->setChild(node);
+        
+        node->setParentNode(initNode);
+        
+        initNode = node;
+    } else {
+        initNode->setChild(nodes[repeatNodeIndex]);
 
-    initNode->setChild(node);
+        nodes[repeatNodeIndex]->setParentNode(initNode);
+
+        initNode = nodes[repeatNodeIndex];
+    }
+
+    for(auto p : nodes){
+        std::cout << p->getFunctionName() << std::endl;
+    }
     
-    node->setParentNode(initNode);
+    std::cout << std::endl;
     
-    initNode = node;
 
 }
 
@@ -169,7 +191,7 @@ void Backtrace::write_to_dot() {
         return;
     }
 
-    dotFileWrite << "node" << initNode->getFunctionName() << 
+    dotFileWrite << "node" << initNode->getStartIP() << 
       " [label=\"" << initNode->getFunctionName() <<
       "\\n Frame Address: 0x" << std::hex << initNode->getFrameAddress() << 
       "\\n Return Address: 0x" << std::hex << initNode->getReturnAddress() <<
@@ -184,14 +206,14 @@ void Backtrace::write_to_dot() {
     if(initNode->getParameters().size() > 0) {
         int counter = 0;
         for(auto params : initNode->getParameters()) {
-            dotFileWrite << "node" << initNode->getParentNode()->getFunctionName() << " -> node" << initNode->getFunctionName() << " [label=\" "; 
+            dotFileWrite << "node" << initNode->getParentNode()->getStartIP() << " -> node" << initNode->getStartIP() << " [label=\" "; 
             dotFileWrite << initNode->getParentNode()->getCallCount() << ":" << params << " --> " << initNode->getParentNode()->getArguments()[counter];
             dotFileWrite << "\"];" << std::endl;
             counter++;
         }
     } else {
       // for functions that dont have parameters
-        dotFileWrite << "node" << initNode->getParentNode()->getFunctionName() << " -> node" << initNode->getFunctionName() << std::endl;
+        dotFileWrite << "node" << initNode->getParentNode()->getStartIP() << " -> node" << initNode->getStartIP() << std::endl;
     }
 }
 

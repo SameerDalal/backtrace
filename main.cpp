@@ -13,6 +13,12 @@ Backtrace* bt = new Backtrace();
 
 int main() {
 
+    unw_getcontext(&context);
+    unw_init_local(&cursor, &context);
+
+    unw_word_t offset, pc;
+    unw_get_reg(&cursor, UNW_REG_IP, &pc);
+    
     bt->start_func_call("main", nullptr);
 
     for(int i = 0; i < 5; i++) {
@@ -43,9 +49,14 @@ void test_1(int param1) {
     
     //can use (void*) but preferably convert all parameters to std::string
     bt->start_func_call("test_1", "int", "param1", std::to_string(param1).c_str());
+
+    unw_proc_info_t proc_info;
+    unw_get_proc_info(&cursor, &proc_info);
+
+    std::cout << proc_info.start_ip << std::endl;
     
     test_2();
-
+    
     test_3();
 
     bt->end_func_call("test_1");
