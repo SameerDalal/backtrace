@@ -17,7 +17,10 @@ unw_word_t lsda;
 unw_word_t handler; 
 unw_word_t global_pointer;
 unw_word_t flags;
+std::vector<std::string> parameters;
 std::vector<std::string> arguments;
+
+int callCount;
 
 
 ContextNode::ContextNode(void* frame_addr, 
@@ -29,7 +32,7 @@ ContextNode::ContextNode(void* frame_addr,
                         unw_word_t handler,
                         unw_word_t global_pointer,
                         unw_word_t flags,
-                        std::vector<std::string> arguments) { 
+                        std::vector<std::string> parameters) { 
     
     this->frame_addr = frame_addr;
     this->return_addr = return_addr;
@@ -40,7 +43,9 @@ ContextNode::ContextNode(void* frame_addr,
     this->global_pointer = global_pointer;
     this->flags = flags;
     this->funcName = funcName;
-    this->arguments = arguments;
+    this->parameters = parameters;
+    this->arguments = {};
+    callCount = 0;
  
 }
 
@@ -56,7 +61,18 @@ void ContextNode::setParentNode(ContextNode* node){
     parent = node;
 }
 
+void ContextNode::setArguments(std::vector<std::string> args) {
+    arguments = args;
+}
+
 // getters
+
+std::vector<std::string> ContextNode::getArguments() {
+    return arguments;
+}
+
+
+    
 
 std::string ContextNode::getFunctionName() {
     return funcName;
@@ -66,8 +82,8 @@ ContextNode* ContextNode::getParentNode() {
     return parent;
 }
 
-std::vector<std::string> ContextNode::getArguments() {
-    return arguments;
+std::vector<std::string> ContextNode::getParameters() {
+    return parameters;
 }
 
 std::vector<ContextNode*> ContextNode::getChildren() {
@@ -81,7 +97,6 @@ void* ContextNode::getFrameAddress() {
 void* ContextNode::getReturnAddress() {
     return return_addr;
 }
-
 
 
 unw_word_t ContextNode::getStartIP() const {
@@ -108,4 +123,10 @@ unw_word_t ContextNode::getFlags() const {
     return flags;
 }
 
+void ContextNode::setCallCount() {
+    callCount++;
+}
 
+int ContextNode::getCallCount(){ 
+    return callCount;
+}

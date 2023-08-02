@@ -5,6 +5,8 @@
 #include <vector>
 #include <fstream>
 #include <stdarg.h>
+#include <cstdarg>
+
 
 
 class Backtrace {
@@ -13,9 +15,9 @@ private:
 
     ContextNode* initNode;
 
-    std::vector<std::string> argArr;
+    std::vector<ContextNode*> nodes;
 
-    std::vector<std::string> parse_arg_arr();
+    std::vector<std::string> parse_arg_arr(std::vector<std::string> array);
     
     void write_to_dot();
 
@@ -24,9 +26,13 @@ public:
     Backtrace();
     ~Backtrace();
 
-    void start_trace(std::string funcName, ...);
+    void start_func_call(std::string funcName, ...);
 
-    void end_trace(std::string funcName);
+    void start_trace_call(std::string funcName, ...);
+
+    void end_trace_call();
+
+    void end_func_call(std::string funcName);
 
     
 };
