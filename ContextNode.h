@@ -60,7 +60,7 @@ public:
     void* getFrameAddress();
     void* getReturnAddress();
 
-    void setCallCount(int val);
+    void addCallCount(int val);
 
     int getCallCount();
 

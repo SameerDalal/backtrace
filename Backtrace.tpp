@@ -11,9 +11,7 @@
 
 ContextNode* initNode;
 
-void* returnAddr;
-
-int prevID;
+std::vector<ContextNode*> nodes;
 
 std::string previousFuncName = "";
 
@@ -53,6 +51,19 @@ std::vector<std::string> Backtrace::parse_arg_arr(std::vector<std::string> array
 
 
 void Backtrace::start_trace_call(std::string funcName, ...) {
+
+    // could change call count implmentation
+    unw_step(&cursor);
+    
+    unw_proc_info_t proc_info;
+    unw_get_proc_info(&cursor, &proc_info);
+
+
+    for (const auto& node : nodes) {
+        if (node->getStartIP() == proc_info.start_ip) {
+            node->addCallCount(1);
+        }
+    }
 
     va_list argp;
     va_start(argp, funcName);
@@ -113,6 +124,8 @@ void Backtrace::start_func_call(std::string funcName, ...) {
                                         proc_info.flags, 
                                         parse_arg_arr(parameter_array));
 
+        nodes.push_back(node);
+
         node->setParentNode(initNode);
         
         initNode = node;
@@ -150,7 +163,7 @@ void Backtrace::write_to_dot() {
         int counter = 0;
         for(auto params : initNode->getParameters()) {
             dotFileWrite << "node" << initNode->getParentNode()->getReturnAddress() << " -> node" << initNode->getReturnAddress() << " [label=\" "; 
-            dotFileWrite << initNode->getParentNode()->getCallCount() << ":" << params << " --> " << initNode->getParentNode()->getArguments()[counter];
+            dotFileWrite << initNode->getParentNode()->getCallCount() << ":" << initNode->getParentNode()->getArguments()[counter] << " --> "  << params;
             dotFileWrite << "\"];" << std::endl;
             counter++;
         }
@@ -160,3 +173,5 @@ void Backtrace::write_to_dot() {
     }
 }
 
+
+//memory cleanup for unused nodes

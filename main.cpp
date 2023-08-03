@@ -17,11 +17,13 @@ int main() {
     bt->start_func_call("main", nullptr);
 
 
-    bt->start_trace_call("test_1", "arg1", nullptr);
+    
     for(int i = 0; i < 5; i++) {
+        bt->start_trace_call("test_1", "arg1", nullptr);
         test_1(i);
+        bt->end_trace_call();
     }
-    bt->end_trace_call();
+   
 
 
     bt->start_trace_call("test_1", "i", nullptr);
