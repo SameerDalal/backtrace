@@ -13,13 +13,16 @@ ContextNode* initNode;
 
 std::vector<ContextNode*> nodes;
 
+void* returnAddr;
+
+std::string prevFuncName = "";
+
+int prevID;
 
 std::ofstream dotFileWrite("tree.dot");
 
 unw_context_t context;
 unw_cursor_t cursor;
-
-
 
 
 Backtrace::Backtrace() {
@@ -33,7 +36,7 @@ Backtrace::~Backtrace() {
     dotFileWrite << "}" << std::endl;
     dotFileWrite.close();
 
-    //delete initNode
+    nodes.clear();
 }
 
 
@@ -53,33 +56,25 @@ std::vector<std::string> Backtrace::parse_arg_arr(std::vector<std::string> array
 }
 
 
-void Backtrace::start_trace_call(std::string funcName, ...) {
+void Backtrace::start_trace_call(int ID, std::string funcName, ...) {
 
-    unw_getcontext(&context);
-    unw_init_local(&cursor, &context);
-
-    unw_word_t offset, pc;
-    unw_get_reg(&cursor, UNW_REG_IP, &pc);
-
-    unw_step(&cursor);
     
-    unw_proc_info_t proc_info;
-    unw_get_proc_info(&cursor, &proc_info);
-
-    char proc_name[128];
-
-    unw_get_proc_name(&cursor, proc_name, sizeof(proc_name), &offset);
+    if(prevFuncName == funcName) {
+        if (ID == prevID) {
+            initNode->setCallCount(initNode->getCallCount()+1);
+        } else {
 
 
-    for (const auto& node : nodes) {
-        if (node->getStartIP() == proc_info.start_ip) {
-            std::cout << "True" << std::endl;
-            std::cout <<  node->getFunctionName() << std::endl;
-            std::cout << node->getCallCount() << std::endl;
-            node->setCallCount();
-            std::cout << node->getCallCount() << std::endl << std::endl;
+            ContextNode* n = initNode->getChildren()[0];
+            n->setUniqueID("_");
+            n->setParentNode(initNode->getParentNode());
+            initNode = n;
+            initNode->setCallCount(0);
         }
+    
     }
+    prevID = ID;
+    prevFuncName = funcName;
 
     
     va_list argp;
@@ -102,7 +97,7 @@ void Backtrace::start_trace_call(std::string funcName, ...) {
 }
 
 void Backtrace::end_trace_call() {
-
+    //
 }
 
 
@@ -131,15 +126,7 @@ void Backtrace::start_func_call(std::string funcName, ...) {
 
     va_end(argp);
 
-    bool buildNewNode = true;
-    int repeatNodeIndex;
-    for(int i = 0; i < nodes.size(); i++) {
-        if(nodes[i]->getStartIP() == proc_info.start_ip) {
-            buildNewNode = false;
-            repeatNodeIndex = i;
-        }
-    }
-    if(buildNewNode) {
+    
     ContextNode* node = new ContextNode(
                                         __builtin_frame_address(1),
                                         __builtin_extract_return_addr(__builtin_return_address(1)), 
@@ -159,18 +146,12 @@ void Backtrace::start_func_call(std::string funcName, ...) {
         node->setParentNode(initNode);
         
         initNode = node;
-    } else {
-        initNode->setChild(nodes[repeatNodeIndex]);
-
-        nodes[repeatNodeIndex]->setParentNode(initNode);
-
-        initNode = nodes[repeatNodeIndex];
-    }
 
     for(auto p : nodes){
         std::cout << p->getFunctionName() << std::endl;
     }
     
+
     std::cout << std::endl;
     
 
@@ -191,7 +172,7 @@ void Backtrace::write_to_dot() {
         return;
     }
 
-    dotFileWrite << "node" << initNode->getStartIP() << 
+    dotFileWrite << "node" << initNode->getFunctionName() << initNode->getUniqueID() <<
       " [label=\"" << initNode->getFunctionName() <<
       "\\n Frame Address: 0x" << std::hex << initNode->getFrameAddress() << 
       "\\n Return Address: 0x" << std::hex << initNode->getReturnAddress() <<
@@ -206,14 +187,14 @@ void Backtrace::write_to_dot() {
     if(initNode->getParameters().size() > 0) {
         int counter = 0;
         for(auto params : initNode->getParameters()) {
-            dotFileWrite << "node" << initNode->getParentNode()->getStartIP() << " -> node" << initNode->getStartIP() << " [label=\" "; 
+            dotFileWrite << "node" << initNode->getParentNode()->getFunctionName() << initNode->getParentNode()->getUniqueID() << " -> node" << initNode->getFunctionName() << initNode->getUniqueID() << " [label=\" "; 
             dotFileWrite << initNode->getParentNode()->getCallCount() << ":" << params << " --> " << initNode->getParentNode()->getArguments()[counter];
             dotFileWrite << "\"];" << std::endl;
             counter++;
         }
     } else {
       // for functions that dont have parameters
-        dotFileWrite << "node" << initNode->getParentNode()->getStartIP() << " -> node" << initNode->getStartIP() << std::endl;
+        dotFileWrite << "node" << initNode->getParentNode()->getFunctionName() << initNode->getParentNode()->getUniqueID() << " -> node" << initNode->getFunctionName() << initNode->getUniqueID() << std::endl;
     }
 }
 

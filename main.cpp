@@ -11,6 +11,7 @@ void test_4_contextTree();
 
 Backtrace* bt = new Backtrace();
 
+
 int main() {
 
     unw_getcontext(&context);
@@ -20,18 +21,18 @@ int main() {
     unw_get_reg(&cursor, UNW_REG_IP, &pc);
     
     bt->start_func_call("main", nullptr);
-
+    int arg1 = 5;
     for(int i = 0; i < 5; i++) {
-        bt->start_trace_call("test_1", "arg1", nullptr);
-        int arg1 = 5;
-        test_1(i);
+        bt->start_trace_call(1, "test_1", "arg1", nullptr);
+        test_1(arg1);
+        arg1++;
         bt->end_trace_call();
     }
 
 
 
 
-    bt->start_trace_call("test_1", "arg1", nullptr);
+    bt->start_trace_call(2, "test_1", "arg1", nullptr);
     test_1(34);
     bt->end_trace_call();
 
@@ -48,6 +49,7 @@ int main() {
 void test_1(int param1) {
     
     //can use (void*) but preferably convert all parameters to std::string
+    std::cout << param1 << std::endl;
     bt->start_func_call("test_1", "int", "param1", std::to_string(param1).c_str());
 
     unw_proc_info_t proc_info;
