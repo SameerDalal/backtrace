@@ -26,8 +26,6 @@ private:
     std::vector<std::string> arguments;
 
     int callCount;
-
-    std::string uniqueID;
     
 
 public:
@@ -72,10 +70,6 @@ public:
     unw_word_t getHandler() const;
     unw_word_t getGlobalPointer() const;
     unw_word_t getFlags() const;
-
-    std::string getUniqueID();
-
-    void setUniqueID(std::string id);
     
 };
 

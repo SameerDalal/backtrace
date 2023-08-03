@@ -11,13 +11,11 @@
 
 ContextNode* initNode;
 
-std::vector<ContextNode*> nodes;
-
 void* returnAddr;
 
-std::string prevFuncName = "";
-
 int prevID;
+
+std::string previousFuncName = "";
 
 std::ofstream dotFileWrite("tree.dot");
 
@@ -35,8 +33,6 @@ Backtrace::Backtrace() {
 Backtrace::~Backtrace() {
     dotFileWrite << "}" << std::endl;
     dotFileWrite.close();
-
-    nodes.clear();
 }
 
 
@@ -56,27 +52,8 @@ std::vector<std::string> Backtrace::parse_arg_arr(std::vector<std::string> array
 }
 
 
-void Backtrace::start_trace_call(int ID, std::string funcName, ...) {
+void Backtrace::start_trace_call(std::string funcName, ...) {
 
-    
-    if(prevFuncName == funcName) {
-        if (ID == prevID) {
-            initNode->setCallCount(initNode->getCallCount()+1);
-        } else {
-
-
-            ContextNode* n = initNode->getChildren()[0];
-            n->setUniqueID("_");
-            n->setParentNode(initNode->getParentNode());
-            initNode = n;
-            initNode->setCallCount(0);
-        }
-    
-    }
-    prevID = ID;
-    prevFuncName = funcName;
-
-    
     va_list argp;
     va_start(argp, funcName);
 
@@ -84,20 +61,17 @@ void Backtrace::start_trace_call(int ID, std::string funcName, ...) {
 
     const char* value;
     while ((value = va_arg(argp, const char*)) != nullptr) {
-        
         argument_array.push_back(value);
-        
     }
 
     va_end(argp);
-
 
     initNode->setArguments(argument_array);
 
 }
 
 void Backtrace::end_trace_call() {
-    //
+   std::cout << initNode->getFunctionName() << std::endl;
 }
 
 
@@ -126,7 +100,7 @@ void Backtrace::start_func_call(std::string funcName, ...) {
 
     va_end(argp);
 
-    
+
     ContextNode* node = new ContextNode(
                                         __builtin_frame_address(1),
                                         __builtin_extract_return_addr(__builtin_return_address(1)), 
@@ -136,25 +110,13 @@ void Backtrace::start_func_call(std::string funcName, ...) {
                                         proc_info.lsda, 
                                         proc_info.handler, 
                                         proc_info.gp, 
-                                        proc_info.flags,
+                                        proc_info.flags, 
                                         parse_arg_arr(parameter_array));
-        
-        nodes.push_back(node);
 
-        initNode->setChild(node);
-        
         node->setParentNode(initNode);
         
         initNode = node;
-
-    for(auto p : nodes){
-        std::cout << p->getFunctionName() << std::endl;
-    }
-    
-
-    std::cout << std::endl;
-    
-
+   
 }
 
 
@@ -172,7 +134,7 @@ void Backtrace::write_to_dot() {
         return;
     }
 
-    dotFileWrite << "node" << initNode->getFunctionName() << initNode->getUniqueID() <<
+    dotFileWrite << "node" << initNode->getReturnAddress() <<
       " [label=\"" << initNode->getFunctionName() <<
       "\\n Frame Address: 0x" << std::hex << initNode->getFrameAddress() << 
       "\\n Return Address: 0x" << std::hex << initNode->getReturnAddress() <<
@@ -187,14 +149,14 @@ void Backtrace::write_to_dot() {
     if(initNode->getParameters().size() > 0) {
         int counter = 0;
         for(auto params : initNode->getParameters()) {
-            dotFileWrite << "node" << initNode->getParentNode()->getFunctionName() << initNode->getParentNode()->getUniqueID() << " -> node" << initNode->getFunctionName() << initNode->getUniqueID() << " [label=\" "; 
+            dotFileWrite << "node" << initNode->getParentNode()->getReturnAddress() << " -> node" << initNode->getReturnAddress() << " [label=\" "; 
             dotFileWrite << initNode->getParentNode()->getCallCount() << ":" << params << " --> " << initNode->getParentNode()->getArguments()[counter];
             dotFileWrite << "\"];" << std::endl;
             counter++;
         }
     } else {
       // for functions that dont have parameters
-        dotFileWrite << "node" << initNode->getParentNode()->getFunctionName() << initNode->getParentNode()->getUniqueID() << " -> node" << initNode->getFunctionName() << initNode->getUniqueID() << std::endl;
+        dotFileWrite << "node" << initNode->getParentNode()->getReturnAddress() << " -> node" << initNode->getReturnAddress() << std::endl;
     }
 }
 

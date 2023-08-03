@@ -28,7 +28,7 @@ public:
 
     void start_func_call(std::string funcName, ...);
 
-    void start_trace_call(int ID, std::string funcName, ...);
+    void start_trace_call(std::string funcName, ...);
 
     void end_trace_call();
 

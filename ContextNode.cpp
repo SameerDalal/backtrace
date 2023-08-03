@@ -22,8 +22,6 @@ std::vector<std::string> arguments;
 
 int callCount;
 
-std::string uniqueID;
-
 
 ContextNode::ContextNode(void* frame_addr, 
                         void* return_addr, 
@@ -48,7 +46,6 @@ ContextNode::ContextNode(void* frame_addr,
     this->parameters = parameters;
     this->arguments = {};
     callCount = 0;
-    uniqueID = "";
  
 }
 
@@ -65,8 +62,11 @@ void ContextNode::setParentNode(ContextNode* node){
 }
 
 void ContextNode::setArguments(std::vector<std::string> args) {
-    arguments = args;
+    for(auto arg : args) {
+        arguments.push_back(arg);
+    }
 }
+
 
 // getters
 
@@ -132,12 +132,4 @@ void ContextNode::setCallCount(int val) {
 
 int ContextNode::getCallCount(){ 
     return callCount;
-}
-
-std::string ContextNode::getUniqueID(){
-    return uniqueID;
-}
-
-void ContextNode::setUniqueID(std::string id) {
-    uniqueID = id;
 }

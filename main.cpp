@@ -14,25 +14,17 @@ Backtrace* bt = new Backtrace();
 
 int main() {
 
-    unw_getcontext(&context);
-    unw_init_local(&cursor, &context);
-
-    unw_word_t offset, pc;
-    unw_get_reg(&cursor, UNW_REG_IP, &pc);
-    
     bt->start_func_call("main", nullptr);
-    int arg1 = 5;
+
+
+    bt->start_trace_call("test_1", "arg1", nullptr);
     for(int i = 0; i < 5; i++) {
-        bt->start_trace_call(1, "test_1", "arg1", nullptr);
-        test_1(arg1);
-        arg1++;
-        bt->end_trace_call();
+        test_1(i);
     }
+    bt->end_trace_call();
 
 
-
-
-    bt->start_trace_call(2, "test_1", "arg1", nullptr);
+    bt->start_trace_call("test_1", "i", nullptr);
     test_1(34);
     bt->end_trace_call();
 
@@ -49,17 +41,19 @@ int main() {
 void test_1(int param1) {
     
     //can use (void*) but preferably convert all parameters to std::string
-    std::cout << param1 << std::endl;
-    bt->start_func_call("test_1", "int", "param1", std::to_string(param1).c_str());
+    bt->start_func_call("test_1", "int", "param1", std::to_string(param1).c_str(), nullptr);
 
-    unw_proc_info_t proc_info;
-    unw_get_proc_info(&cursor, &proc_info);
+    bt->start_trace_call("test_2", nullptr);
 
-    std::cout << proc_info.start_ip << std::endl;
-    
     test_2();
-    
+
+    bt->end_trace_call();
+
+
+    bt->start_trace_call("test_3", nullptr);
     test_3();
+
+    bt->end_trace_call();
 
     bt->end_func_call("test_1");
 }
@@ -68,7 +62,10 @@ void test_2() {
 
     bt->start_func_call("test_2", nullptr);
 
+    bt->start_trace_call("test_3", nullptr);
     test_3();
+
+    bt->end_trace_call();
 
     bt->end_func_call("test_2");
 }
@@ -77,7 +74,11 @@ void test_3() {
 
     bt->start_func_call("test_3", nullptr);
 
+    bt->start_trace_call("test_4", nullptr);
+
     test_4_contextTree();
+
+    bt->end_trace_call();
 
     bt->end_func_call("test_3");
 }
