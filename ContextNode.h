@@ -5,16 +5,16 @@
 #include <vector>
 #include <libunwind.h>
 
-
 class ContextNode {
     
 private:
 
     ContextNode* parent;
     std::vector<ContextNode*> children;
+    void* return_addr; //this is used to uniquely identify a call location
+    int callCount;
 
     void* frame_addr;
-    void* return_addr;
     std::string funcName;
     unw_word_t start_ip;
     unw_word_t end_ip;
@@ -24,9 +24,6 @@ private:
     unw_word_t flags;
     std::vector<std::string> parameters;
     std::vector<std::string> arguments;
-
-    int callCount;
-    
 
 public:
     ContextNode(        void* frame_addr, 
@@ -39,9 +36,13 @@ public:
                         unw_word_t global_pointer,
                         unw_word_t flags,
                         std::vector<std::string> parameters);
+
+
+    ContextNode(std::string funcName, void* return_addr);
+
     ~ContextNode();
 
-    void setChild(ContextNode* node);
+    void addChild(ContextNode* node);
     void removeChild();
 
     void setParentNode(ContextNode* node);
@@ -49,9 +50,10 @@ public:
     std::string getFunctionName();
     ContextNode* getParentNode();
 
-    std::vector<std::string> getParameters();
+    std::vector<std::string> & getParameters();
 
-    std::vector<std::string> getArguments();
+    std::vector<std::string> &getArguments();
+    void addArgument(std::string arg);
 
     std::vector<ContextNode*> getChildren();
 
