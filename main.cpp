@@ -21,7 +21,11 @@ int main() {
     trace_func_call("test_1", 2, "test1:34", "test2:25");
     test_1(34, 25);
     trace_func_call_end();
-
+    
+    trace_func_call("test_2", 0);
+    test_2();
+    trace_func_call_end();
+    
     finalize();
     return 0;
 }
