@@ -7,34 +7,7 @@
 #include <stdarg.h>
 #include <cstdarg>
 
-
-
-class Backtrace {
-
-private:
-
-    ContextNode* initNode;
-
-    std::vector<ContextNode*> nodes;
-
-    std::vector<std::string> parse_arg_arr(std::vector<std::string> array);
-    
-    void write_to_dot();
-
-public:
-
-    Backtrace();
-    ~Backtrace();
-
-    void start_func_call(std::string funcName, ...);
-
-    void start_trace_call(std::string funcName, ...);
-
-    void end_trace_call();
-
-    void end_func_call(std::string funcName);
-
-    
-};
-
-#include "Backtrace.tpp" 
+void bootstrap();
+void finalize();
+void trace_func_call(std::string funcName, int num_args, ...);
+void trace_func_call_end();

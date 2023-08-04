@@ -4,25 +4,6 @@
 #include <vector>
 #include <libunwind.h>
 
-
-ContextNode* parent;
-std::vector<ContextNode*> children;
-
-void* frame_addr;
-void* return_addr;
-std::string funcName;
-unw_word_t start_ip;
-unw_word_t end_ip;
-unw_word_t lsda;
-unw_word_t handler; 
-unw_word_t global_pointer;
-unw_word_t flags;
-std::vector<std::string> parameters;
-std::vector<std::string> arguments;
-
-int callCount;
-
-
 ContextNode::ContextNode(void* frame_addr, 
                         void* return_addr, 
                         std::string funcName,
@@ -49,11 +30,19 @@ ContextNode::ContextNode(void* frame_addr,
  
 }
 
+ContextNode::ContextNode(std::string funcName, void* return_addr) {
+    
+    this->return_addr = return_addr;
+    this->funcName = funcName;
+    this->arguments = {};
+    callCount = 0;
+}
+
 ContextNode::~ContextNode() {
     //delete this;
 }
 
-void ContextNode::setChild(ContextNode* child) {
+void ContextNode::addChild(ContextNode* child) {
     children.push_back(child);
 }
 
@@ -70,12 +59,13 @@ void ContextNode::setArguments(std::vector<std::string> args) {
 
 // getters
 
-std::vector<std::string> ContextNode::getArguments() {
+std::vector<std::string> &ContextNode::getArguments() {
     return arguments;
 }
 
-
-    
+void ContextNode::addArgument(std::string arg) {
+    arguments.push_back(arg);
+}
 
 std::string ContextNode::getFunctionName() {
     return funcName;
@@ -85,7 +75,7 @@ ContextNode* ContextNode::getParentNode() {
     return parent;
 }
 
-std::vector<std::string> ContextNode::getParameters() {
+std::vector<std::string> & ContextNode::getParameters() {
     return parameters;
 }
 
@@ -100,7 +90,6 @@ void* ContextNode::getFrameAddress() {
 void* ContextNode::getReturnAddress() {
     return return_addr;
 }
-
 
 unw_word_t ContextNode::getStartIP() const {
     return start_ip;
