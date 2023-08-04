@@ -35,7 +35,14 @@ static void print_node_info_brief(ContextNode* node) {
 void bootstrap() {
     //this is used before main is called, we could just call trace_func_call, but only the following
     //are useful, thus we will not call trace_func_call here
-    topNode = new ContextNode("main", (void*) 0xFFFFFFFF);
+    unw_context_t context;
+    unw_cursor_t cursor;
+    unw_word_t ip;
+    unw_getcontext(&context);
+    unw_init_local(&cursor, &context);
+    unw_step(&cursor);
+    unw_get_reg(&cursor, UNW_REG_IP, &ip); //The address/location of the call
+    topNode = new ContextNode("main", (void*) ip);
     topNode->addCallCount(1);
     topNode->setParentNode(nullptr);
     //print_node_info_brief(topNode);
@@ -102,20 +109,22 @@ void write_to_dot() {
     dotFileWrite << "digraph ContextTree {" << std::endl;
     for (auto & node : nodes) {
         //print_node_info_brief(node);
-        dotFileWrite << node->getFunctionName() << node->getReturnAddress() <<
+        dotFileWrite << node->getFunctionName() << node <<
             "[label=\"" << node->getFunctionName() <<
             "\\n Call Location: 0x" << std::hex << node->getReturnAddress() <<
             "\"];" << std::endl;
 
         for (auto &child  : node->getChildren()) {
             if (child->getArguments().size() == 0) {
-                dotFileWrite << node->getFunctionName() << node->getReturnAddress() << " -> " << 
-                         child->getFunctionName() << child ->getReturnAddress() << std::endl; 
+                dotFileWrite << node->getFunctionName() << node << " -> " << 
+                         child->getFunctionName() << child << "[label=\" "; 
+                    dotFileWrite << child->getCallCount() << "x";
+                    dotFileWrite << "\"];" << std::endl;
             } else {
                 int i = 0;
                 for(auto & param: child->getArguments()) {
-                    dotFileWrite << node->getFunctionName() << node->getReturnAddress() << " -> " << 
-                         child->getFunctionName() << child ->getReturnAddress() << "[label=\" "; 
+                    dotFileWrite << node->getFunctionName() << node << " -> " << 
+                         child->getFunctionName() << child << "[style=bold, label=\" "; 
                     dotFileWrite << param << "," << child->getCallCount() << "x";
                     dotFileWrite << "\"];" << std::endl;
                 }
