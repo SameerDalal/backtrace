@@ -12,7 +12,7 @@ void test_4_contextTree();
 
 int main() {
     bootstrap();
-    for(int i = 0; i < 5; i++) {
+    for(int i = 0; i < 1000; i++) {
         trace_func_call("test_1", 2, "test1:i", "test2:i");
         test_1(i, i);
         trace_func_call_end();

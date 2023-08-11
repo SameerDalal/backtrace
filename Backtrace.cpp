@@ -118,14 +118,14 @@ void write_to_dot() {
             if (child->getArguments().size() == 0) {
                 dotFileWrite << node->getFunctionName() << node << " -> " << 
                          child->getFunctionName() << child << "[label=\" "; 
-                    dotFileWrite << child->getCallCount() << "x";
+                    dotFileWrite << std::to_string(child->getCallCount()) << "x";
                     dotFileWrite << "\"];" << std::endl;
             } else {
                 int i = 0;
                 for(auto & param: child->getArguments()) {
                     dotFileWrite << node->getFunctionName() << node << " -> " << 
                          child->getFunctionName() << child << "[style=bold, label=\" "; 
-                    dotFileWrite << param << "," << child->getCallCount() << "x";
+                    dotFileWrite << param << "," << std::to_string(child->getCallCount()) << "x";
                     dotFileWrite << "\"];" << std::endl;
                 }
             } 
